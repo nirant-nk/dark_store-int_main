@@ -1,23 +1,35 @@
 
-import { useAuth } from "./AuthProvider";
-import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
-export function ProtectedRoute() {
-  const { user, isLoading } = useAuth();
-  const location = useLocation();
+type ProtectedRouteProps = {
+  children: React.ReactNode;
+  allowedRoles?: string[];
+};
 
+const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
+  const { isAuthenticated, user, isLoading } = useAuth();
+  
+  // Show loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
-
-  if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  
+  // Not authenticated
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
   }
+  
+  // Role-based access control
+  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+  
+  return <>{children}</>;
+};
 
-  return <Outlet />;
-}
+export default ProtectedRoute;

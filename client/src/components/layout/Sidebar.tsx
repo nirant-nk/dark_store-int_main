@@ -1,137 +1,189 @@
 
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import { 
-  ArrowLeftRight, 
-  BarChart3, 
-  Box, 
-  ChevronLeft, 
-  Cog, 
-  Home, 
-  Layers, 
-  Truck, 
-  Users, 
-  PackageOpen,
-  ClipboardList
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  BarChart4,
+  Box,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  Home,
+  LayoutDashboard,
+  LogOut,
+  Package,
+  Settings,
+  ShoppingCart,
+  Store,
+  Truck,
+  Users,
+} from "lucide-react";
 
 interface SidebarProps {
-  isOpen: boolean;
-  onToggle: () => void;
+  className?: string;
 }
 
-export function Sidebar({ isOpen, onToggle }: SidebarProps) {
+interface SidebarItem {
+  title: string;
+  href: string;
+  icon: React.ReactNode;
+  roles?: string[];
+}
+
+const Sidebar = ({ className }: SidebarProps) => {
+  const { user, logout } = useAuth();
   const location = useLocation();
-  const [mounted, setMounted] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    
-    // Set CSS variable for the sidebar width
-    document.documentElement.style.setProperty(
-      '--sidebar-width', 
-      isOpen ? '240px' : '64px'
-    );
-    
-    return () => {
-      document.documentElement.style.removeProperty('--sidebar-width');
-    };
-  }, [isOpen]);
-
-  if (!mounted) return null;
-
-  const menuItems = [
-    { icon: Home, label: "Dashboard", path: "/" },
-    { icon: Box, label: "Inventory", path: "/inventory" },
-    { icon: ClipboardList, label: "Orders", path: "/orders" },
-    { icon: Layers, label: "Warehouse", path: "/warehouse" },
-    { icon: Users, label: "Staff", path: "/staff" },
-    // { icon: BarChart3, label: "Analytics", path: "/analytics" },
-    { icon: Cog, label: "Settings", path: "/settings" },
+  // Menu items based on user role
+  const menuItems: SidebarItem[] = [
+    {
+      title: "Dashboard",
+      href: "/dashboard",
+      icon: <LayoutDashboard className="h-5 w-5" />,
+      roles: ["admin", "store_manager", "warehouse_staff", "delivery_partner", "retailer"],
+    },
+    {
+      title: "Inventory",
+      href: "/inventory",
+      icon: <Package className="h-5 w-5" />,
+      roles: ["admin", "store_manager", "warehouse_staff"],
+    },
+    {
+      title: "Orders",
+      href: "/orders",
+      icon: <ShoppingCart className="h-5 w-5" />,
+      roles: ["admin", "store_manager", "warehouse_staff", "delivery_partner", "retailer"],
+    },
+    {
+      title: "Warehouses",
+      href: "/warehouses",
+      icon: <Store className="h-5 w-5" />,
+      roles: ["admin", "store_manager"],
+    },
+    {
+      title: "Staff",
+      href: "/staff",
+      icon: <Users className="h-5 w-5" />,
+      roles: ["admin", "store_manager"],
+    },
+    {
+      title: "Deliveries",
+      href: "/deliveries",
+      icon: <Truck className="h-5 w-5" />,
+      roles: ["admin", "store_manager", "delivery_partner"],
+    },
+    {
+      title: "Products",
+      href: "/products",
+      icon: <Box className="h-5 w-5" />,
+      roles: ["admin", "store_manager", "retailer"],
+    },
+    {
+      title: "Tasks",
+      href: "/tasks",
+      icon: <ClipboardList className="h-5 w-5" />,
+      roles: ["warehouse_staff", "delivery_partner"],
+    },
+    {
+      title: "Reports",
+      href: "/reports",
+      icon: <BarChart4 className="h-5 w-5" />,
+      roles: ["admin", "store_manager"],
+    },
+    {
+      title: "Settings",
+      href: "/settings",
+      icon: <Settings className="h-5 w-5" />,
+      roles: ["admin", "store_manager", "warehouse_staff", "delivery_partner", "retailer"],
+    },
   ];
 
+  // Filter items by user role
+  const filteredItems = menuItems.filter(
+    (item) => !item.roles || (user && item.roles.includes(user.role))
+  );
+
+  // Toggle sidebar collapse
+  const toggleCollapse = () => {
+    setCollapsed(!collapsed);
+  };
+
   return (
-    <aside
+    <div
       className={cn(
-        "fixed top-0 left-0 z-50 h-full bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out border-r border-sidebar-border flex flex-col",
-        isOpen ? "w-60" : "w-16"
+        "flex flex-col border-r bg-sidebar text-sidebar-foreground transition-all duration-300",
+        collapsed ? "w-[70px]" : "w-[240px]",
+        className
       )}
     >
-      <div className={cn(
-        "h-14 flex items-center px-4 border-b border-sidebar-border transition-all",
-        isOpen ? "justify-between" : "justify-center"
-      )}>
-        {isOpen ? (
-          <>
-            <span className="font-medium text-sidebar-foreground">StockPulse</span>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={onToggle}
-              className="h-8 w-8 text-sidebar-foreground hover:bg-sidebar-accent"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-          </>
-        ) : (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={onToggle}
-            className="h-8 w-8 text-sidebar-foreground hover:bg-sidebar-accent"
-          >
-            <span className="font-bold text-sidebar-primary">D</span>
-          </Button>
-        )}
+      <div className="flex h-14 items-center px-3 border-b border-sidebar-border">
+        <div className="flex items-center">
+          {!collapsed && (
+            <Link to="/dashboard" className="flex items-center gap-2">
+              <Home className="h-5 w-5 text-sidebar-primary" />
+              <span className="font-medium">Stock Pulse</span>
+            </Link>
+          )}
+          {collapsed && (
+            <Link to="/dashboard" className="flex justify-center w-full">
+              <Home className="h-5 w-5 text-sidebar-primary" />
+            </Link>
+          )}
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleCollapse}
+          className={cn(
+            "ml-auto h-8 w-8 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            collapsed && "rotate-180"
+          )}
+        >
+          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        </Button>
       </div>
-
+      
       <ScrollArea className="flex-1 py-2">
-        <nav className="space-y-1 px-2">
-          {menuItems.map((item) => (
+        <nav className="grid gap-1 px-2">
+          {filteredItems.map((item, index) => (
             <Link
-              key={item.path}
-              to={item.path}
+              key={item.title}
+              to={item.href}
               className={cn(
-                "flex items-center px-2 py-2 rounded-md transition-all group",
-                location.pathname === item.path 
-                  ? "bg-sidebar-accent text-sidebar-primary" 
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50",
-                !isOpen && "justify-center"
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                location.pathname === item.href ||
+                  (item.href !== "/dashboard" && location.pathname.startsWith(item.href))
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                collapsed && "justify-center px-0"
               )}
             >
-              <item.icon className={cn(
-                "h-5 w-5 shrink-0",
-                location.pathname === item.path 
-                  ? "text-sidebar-primary" 
-                  : "text-sidebar-foreground group-hover:text-sidebar-primary"
-              )} />
-              
-              {isOpen && (
-                <span className="ml-3 text-sm font-medium">{item.label}</span>
-              )}
+              {item.icon}
+              {!collapsed && <span>{item.title}</span>}
             </Link>
           ))}
         </nav>
       </ScrollArea>
-
-      <div className="border-t border-sidebar-border p-2">
-        <div className={cn(
-          "flex items-center rounded-md bg-sidebar-accent/50 p-2 text-xs text-sidebar-foreground/70",
-          !isOpen && "justify-center"
-        )}>
-          {isOpen ? (
-            <div className="flex flex-col">
-              <span className="text-xs font-medium">Int Main v1.0</span>
-              <span className="text-2xs text-sidebar-foreground/50">© 2025 Int Main Inc.</span>
-            </div>
-          ) : (
-            <span className="text-2xs">v1.0</span>
+      
+      <div className="mt-auto p-2 border-t border-sidebar-border">
+        <Button
+          variant="ghost"
+          className={cn(
+            "w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            collapsed && "justify-center"
           )}
-        </div>
+          onClick={logout}
+        >
+          <LogOut className="h-5 w-5 mr-2" />
+          {!collapsed && <span>Logout</span>}
+        </Button>
       </div>
-    </aside>
+    </div>
   );
-}
+};
+
+export default Sidebar;

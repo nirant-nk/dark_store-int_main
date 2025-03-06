@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -10,10 +9,7 @@ const warehouseZones = [
   { id: "A2", status: "active", category: "Clothing", fills: 76 },
   { id: "A3", status: "active", category: "Home Goods", fills: 85 },
   { id: "A4", status: "active", category: "Toys", fills: 42 },
-  { id: "B1", status: "active", category: "Kitchen", fills: 87 },
-  { id: "B2", status: "maintenance", category: "Furniture", fills: 15 },
-  { id: "B3", status: "active", category: "Books", fills: 53 },
-]
+];
 
 export function WarehouseMap() {
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
@@ -28,7 +24,7 @@ export function WarehouseMap() {
 
   return (
     <div className="animate-fade-up">
-      <Card>
+      <Card className="border-none shadow-lg">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold">Warehouse Layout</CardTitle>
